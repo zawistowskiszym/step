@@ -1,0 +1,388 @@
+import React, { useState } from 'react';
+import { 
+  MapPin, 
+  Navigation, 
+  ArrowRightLeft, 
+  Bus, 
+  Train, 
+  TramFront, 
+  Clock, 
+  Search,
+  Menu,
+  X,
+  AlertCircle,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
+
+// --- Real Data Structure ---
+
+const STOPS_DB = [
+  // METRO
+  "Palmiry", "Zaporowska", "Czachowice", "Trumienna", "Praktyków", "Źródlaki", "Aleja Geothego", "ORN", "Fiftozy", "Plac Wielkopolski", "Warszawska", "Dworzec Centralny", "Uniwersytet", "Stare Jegóry", "Jegórska", "Planetarium", "Radosław", "Dawidy", "Świder Wielki", "Świderska", "Zgrubsza", "Mostumiły",
+  "Borki", "Wettynów", "Koronna", "Trybunal", "Samowola", "Plac Handlowy", "Wieża", "Alberta", "Górnośląska", "Plac Koteckich", "Różany", "Dworzec Wschodni", "Rondo Unii Europejskiej", "Brokolin", "Stadion Narodowy", "Grudów", "Winniczka", "Światowida", "Kruki",
+  "Mirów", "Kyrylczyn", "Centrum Zdrowia Dziecka", "Lotnisko Centrum", "Akademia", "Plac Koteckiego", "Opera", "Karolkowa", "Niukolin", "Tronowa", "Szwedzka", "Dorsztat",
+  "Anińska", "Aleje Żwirki i Wigury", "Ruinka", "Dworzec Zachodni", "Wołoska", "Centrum", "Rondo Waryńskiego", "Królewska", "Krzywe Koło", "Helońska", "Karłowice", "Jegórka", "Łacina",
+  // KOLEJ
+  "Żwajec", "Franców", "Paski", "Traktówka", "Szerock", "Chocimów", "Jechów", "Lotnisko Goethego Parking", "Śródka", "Anin", "Wilagrów Fabryczny", "Nowiniarska", "Plac Unii Bizceńskiej", "Aleja Kolejowa",
+  "Jegóry", "Wittek", "Zarzecze", "Oleśnik", "Oleśniczka", "Ugraniec", "Morsztynek", "Wola Graniecka", "Pustelnik",
+  "Miauocin", "Dworek Miauski", "Magnatów", "Piwniczańska", "Most Hoene-Wrońskiego", "Port", "Kabor", "Most Doroty", "Most Bobra", "Pryzmów", "Kłopot", "Armii Krajowej", "Bonda", "Borysin", "Most Bizceński", "Polimówka", "Łostoj", "Emowo",
+  "Wilagrów", "Targowa", "Skuszowice", "Grunwaldzka", "Cmentarz Międzyleski", "Międzylesie", "Jelce", "Inflancka", "Jaworowa", "Sztumska", "Janczar", "Absoluty Lenne", "Absoluty", "Szymankowszyznice",
+  "Bernów", "Bernów Bankowa", "Kyrylczyńska", "Habsburg", "Oliwska", "Brzeska", "Buczacz", "Politechnika", "Mirów Królewski", "Ostroroga",
+  "Lotnisko Goethego T3", "Lotnisko Goethego T1&2", "Lotnisko Goethego Terminal Autokarowy",
+  // TRAMWAJE
+  "Plac Koński", "Karowa", "Czerwona", "Wołoska-Muzeum", "Tytoniu", "Urbanistów", "Matematyczna", "Park Aniołów", "Zagadkowa", "Adama", "Faworytowa", "Wiktoria-Ratusz", "Teatr Słowackiego", "Habrowskiej", "Nowolipie", "Nowolipki", "Zajezdnia Mirów", "Studencka-Park Rozrywki", "Dyrektorska", "Wydział Prawa", "Pałacowa", "Woli", "Plac Henkla",
+  "Szkolna", "Kliniczna", "Szpital Gurewicza", "Most Kolasińskiego", "Księcia Janusza", "Liniowa", "Galeria", "Zajezdnia Monotony", "Lotniczej Straży Pożarnej", "Głazów", "Aleja Goethego-Szpital", "Serbska", "Urząd Zarządzania Kryzysowego", "Obozowa", "Giełda", "Kibiców", "SST", "Zielona", "Muzyczna", "Wagonowa", "Bankowa", "Plac Centralny", "Trakt Królewski", "Izabeli", "Złotej Jesieni", "Marywilska", "Zajezdnia Skuszowice", "Coopera", "Marsa", "Skuszowicka", "Karmelicka", "Biała", "Park Centralny", "Kooperacyjna", "Plac Elżbiety", "Piłsudskiego", "Inwestorska", "Parkowa", "Foksal", "Rondo Wielopolskiego", "Drawska", "Pułkowa", "Rondo WOŚP", "Lektorska", "Aspekt", "Przyrzecze", "Rosoła", "Park Przygórski", "Piwna", "Pawlinki", "Franklina", "Wydział Pedagogiki", "Wydział Biologii", "Budziszewska", "Tłumna", "Belli Ćwir", "Traugutta", "Kopernika", "Pilatan", "Pilotów-Klinika", "Szpital Uniwersytecki", "Groszów", "Honorowskiego", "Laurowa", "Baseny Uniwersyteckie", "Zajezdnia Śródmieście", "Hotel Caistel", "Kolędnicza"
+];
+
+const NETWORK = {
+  // METRO
+  "M1": { type: "metro", stops: ["Palmiry", "Zaporowska", "Czachowice", "Trumienna", "Praktyków", "Źródlaki", "Aleja Geothego", "ORN", "Fiftozy", "Plac Wielkopolski", "Warszawska", "Dworzec Centralny", "Uniwersytet", "Stare Jegóry", "Jegórska", "Planetarium", "Radosław", "Dawidy", "Świder Wielki", "Świderska", "Zgrubsza", "Mostumiły"] },
+  "M2": { type: "metro", stops: ["Borki", "Wettynów", "Koronna", "Trybunal", "Samowola", "Plac Handlowy", "Wieża", "Alberta", "Górnośląska", "Plac Koteckich", "Różany", "Dworzec Wschodni", "Rondo Unii Europejskiej", "Uniwersytet", "Brokolin", "Stadion Narodowy", "Grudów", "Winniczka", "Światowida", "Kruki"] },
+  "M3": { type: "metro", stops: ["Borki", "Wettynów", "Mirów", "Kyrylczyn", "Centrum Zdrowia Dziecka", "Lotnisko Centrum", "Akademia", "Plac Koteckiego", "Opera", "Dworzec Centralny", "Brokolin", "Karolkowa", "Radosław", "Niukolin", "Tronowa", "Szwedzka", "Dorsztat"] },
+  "M4": { type: "metro", stops: ["Palmiry", "Zaporowska", "Czachowice", "Trumienna", "Praktyków", "Anińska", "Aleje Żwirki i Wigury", "Ruinka", "Dworzec Zachodni", "Wołoska", "Dworzec Centralny", "Centrum", "Dworzec Wschodni", "Rondo Waryńskiego", "Królewska", "Krzywe Koło", "Helońska", "Karłowice", "Jegórka", "Łacina", "Tronowa", "Szwedzka", "Dorsztat"] },
+  // KOLEJ (S-Bahn)
+  "S1": { type: "train", stops: ["Żwajec", "Franców", "Paski", "Traktówka", "Szerock", "Chocimów", "Jechów", "Lotnisko Goethego Parking", "Kruki", "Światowida", "Winniczka", "Śródka", "Anin", "Wilagrów Fabryczny", "Nowiniarska", "Dworzec Zachodni", "Plac Unii Bizceńskiej", "Plac Wielkopolski", "Aleja Kolejowa", "Dworzec Centralny", "Uniwersytet", "Rondo Unii Europejskiej", "Dworzec Wschodni"] },
+  "S2": { type: "train", stops: ["Dworzec Wschodni", "Królewska", "Jegóry", "Jegórka", "Wittek", "Zarzecze", "Oleśnik", "Oleśniczka", "Ugraniec", "Morsztynek", "Wola Graniecka", "Pustelnik"] },
+  "S3": { type: "train", stops: ["Miauocin", "Dworek Miauski", "Magnatów", "Piwniczańska", "Most Hoene-Wrońskiego", "Port", "Kabor", "Most Doroty", "Most Bobra", "Aleja Kolejowa", "Dworzec Centralny", "Brokolin", "Pryzmów", "Kłopot", "Armii Krajowej", "Bonda", "Borysin", "Most Bizceński", "Dorsztat", "Polimówka", "Łostoj", "Emowo", "Wola Graniecka", "Pustelnik"] },
+  "S4": { type: "train", stops: ["Miauocin", "Dworek Miauski", "Magnatów", "Piwniczańska", "Most Hoene-Wrońskiego", "Port", "Kabor", "Most Doroty", "Wilagrów", "Dworzec Zachodni", "Stadion Narodowy", "Brokolin", "Targowa", "Planetarium", "Jegórska", "Jegóry", "Królewska", "Skuszowice", "Alberta", "Grunwaldzka", "Cmentarz Międzyleski", "Międzylesie", "Kyrylczyn", "Jelce", "Inflancka", "Jaworowa", "Sztumska", "Janczar", "Absoluty Lenne", "Absoluty", "Szymankowszyznice"] },
+  "S5": { type: "train", stops: ["Bernów", "Bernów Bankowa", "Kyrylczyńska", "Habsburg", "Oliwska", "Brzeska", "Buczacz", "Politechnika", "Mirów Królewski", "Ostroroga", "Królewska", "Jegóry", "Jegórska", "Niukolin", "Bonda", "Borysin", "Most Bizceński", "Dorsztat", "Polimówka", "Łostoj", "Emowo", "Wola Graniecka", "Pustelnik"] },
+  "S6": { type: "train", stops: ["Lotnisko Goethego T3", "Lotnisko Goethego T1&2", "Lotnisko Goethego Terminal Autokarowy", "Lotnisko Goethego Parking", "Kruki", "Światowida", "Winniczka", "Śródka", "Anin", "Wilagrów Fabryczny", "Nowiniarska", "Dworzec Zachodni", "Plac Unii Bizceńskiej", "Plac Wielkopolski", "Aleja Kolejowa", "Dworzec Centralny", "Brokolin", "Pryzmów", "Kłopot", "Armii Krajowej", "Bonda", "Borysin", "Most Bizceński", "Dorsztat", "Polimówka", "Łostoj", "Emowo", "Wola Graniecka", "Pustelnik"] },
+  "S7": { type: "train", stops: ["Bernów", "Bernów Bankowa", "Kyrylczyńska", "Habsburg", "Oliwska", "Brzeska", "Buczacz", "Politechnika", "Mirów Królewski", "Ostroroga", "Królewska", "Jegóry", "Jegórska", "Planetarium", "Targowa", "Brokolin"] },
+  // TRAMWAJE
+  "1": { type: "tram", stops: ["Plac Koński", "Karowa", "Czerwona", "Wołoska-Muzeum", "Tytoniu", "Urbanistów", "Matematyczna", "Park Aniołów", "Zagadkowa", "Adama", "Most Bobra", "Faworytowa", "Wiktoria-Ratusz", "Teatr Słowackiego", "Grunwaldzka", "Habrowskiej", "Wieża", "Nowolipie", "Nowolipki", "Politechnika", "Zajezdnia Mirów", "Studencka-Park Rozrywki", "Dyrektorska", "Wydział Prawa", "Mirów Królewski", "Pałacowa", "Woli", "Plac Henkla"] },
+  "2": { type: "tram", stops: ["Plac Koteckich", "Szkolna", "Kliniczna", "Szpital Gurewicza", "Wiktoria-Ratusz", "Most Kolasińskiego", "Księcia Janusza", "Warszawska", "Liniowa", "Matematyczna", "Galeria", "Plac Unii Bizceńskiej", "Zajezdnia Monotony", "Dworzec Zachodni"] },
+  "3": { type: "tram", stops: ["Wilagrów Fabryczny", "Lotniczej Straży Pożarnej", "Nowiniarska", "Aleje Żwirki i Wigury", "Wilagrów", "Głazów", "Aleja Goethego-Szpital", "Serbska", "Plac Unii Bizceńskiej", "Zajezdnia Monotony", "Urząd Zarządzania Kryzysowego", "Obozowa", "Giełda", "Kibiców", "Stadion Narodowy", "SST", "Wołoska-Muzeum", "Zielona", "Muzyczna", "Dworzec Centralny", "Wagonowa", "Bankowa", "Plac Centralny", "Uniwersytet", "Trakt Królewski", "Rondo Unii Europejskiej", "Izabeli", "Złotej Jesieni", "Rondo Waryńskiego", "Skuszowice", "Marywilska", "Zajezdnia Skuszowice", "Coopera", "Marsa", "Skuszowicka", "Karmelicka", "Biała", "Plac Henkla"] },
+  "4": { type: "tram", stops: ["Plac Koński", "Karowa", "Zielona", "Muzyczna", "Dworzec Centralny", "Wagonowa", "Park Centralny", "Kooperacyjna", "Księcia Janusza", "Plac Elżbiety", "Piłsudskiego", "Plac Wielkopolski", "Galeria", "Plac Unii Bizceńskiej", "Zajezdnia Monotony", "Inwestorska", "Dworzec Zachodni"] },
+  "5": { type: "tram", stops: ["Galeria", "Matematyczna", "Liniowa", "Warszawska", "Parkowa", "Muzyczna", "Dworzec Centralny", "Wagonowa", "Bankowa", "Dworzec Centralny"] },
+  "6": { type: "tram", stops: ["Cmentarz Międzyleski", "Habrowskiej", "Grunwaldzka", "Teatr Słowackiego", "Szpital Gurewicza", "Kliniczna", "Foksal", "Rondo Wielopolskiego", "Dworzec Wschodni", "Rondo Unii Europejskiej", "Trakt Królewski", "Uniwersytet", "Centrum", "Opera", "Kooperacyjna", "Księcia Janusza", "Warszawska"] },
+  "7": { type: "tram", stops: ["Drawska", "Pułkowa", "Kibiców", "Stadion Narodowy", "SST", "Wołoska-Muzeum", "Zielona", "Muzyczna", "Dworzec Centralny", "Wagonowa", "Park Centralny", "Kooperacyjna", "Opera", "Centrum", "Uniwersytet", "Trakt Królewski", "Rondo Unii Europejskiej", "Izabeli", "Złotej Jesieni", "Rondo Waryńskiego", "Skuszowice", "Marywilska", "Zajezdnia Skuszowice", "Rondo WOŚP", "Lektorska", "Wydział Prawa", "Dyrektorska", "Studencka-Park Rozrywki", "Zajezdnia Mirów", "Politechnika", "Nowolipki", "Nowolipie", "Wieża", "Habrowskiej", "Cmentarz Międzyleski"] },
+  "8": { type: "tram", stops: ["Krzywe Koło", "Aspekt", "Helońska", "Przyrzecze", "Rosoła", "Jegóry", "Park Przygórski", "Piwna", "Pawlinki", "Rondo Unii Europejskiej", "Dworzec Wschodni", "Rondo Wielopolskiego", "Foksal", "Teatr Słowackiego", "Wiktoria-Ratusz", "Faworytowa", "Most Bobra", "Adama", "Zagadkowa", "Franklina", "Wilagrów"] },
+  "9": { type: "tram", stops: ["Plac Koński", "Karowa", "Czerwona", "Wołoska-Muzeum", "Tytoniu", "Urbanistów", "Liniowa", "Warszawska", "Księcia Janusza", "Kooperacyjna", "Opera", "Centrum", "Uniwersytet", "Trakt Królewski", "Wydział Pedagogiki", "Wydział Biologii", "Budziszewska", "Tłumna", "Belli Ćwir", "Traugutta", "Kopernika", "Planetarium"] },
+  "10": { type: "tram", stops: ["Pilatan", "Pilotów-Klinika", "Obozowa", "Aleja Goethego-Szpital", "Plac Unii Bizceńskiej", "Galeria", "Plac Wielkopolski", "Piłsudskiego", "Plac Elżbiety", "Księcia Janusza", "Kooperacyjna", "Opera", "Centrum", "Uniwersytet", "Trakt Królewski", "Rondo Unii Europejskiej", "Pawlinki", "Piwna", "Park Przygórski", "Jegóry", "Rosoła", "Przyrzecze", "Helońska", "Aspekt", "Krzywe Koło"] },
+  "11": { type: "tram", stops: ["Szpital Uniwersytecki", "Groszów", "Radosław", "Traugutta", "Belli Ćwir", "Tłumna", "Budziszewska", "Wydział Biologii", "Wydział Pedagogiki", "Trakt Królewski", "Uniwersytet", "Plac Centralny", "Bankowa", "Wagonowa", "Dworzec Centralny", "Muzyczna", "Parkowa", "Warszawska", "Księcia Janusza", "Most Kolasińskiego", "Wiktoria-Ratusz", "Szpital Gurewicza", "Kliniczna", "Foksal", "Honorowskiego", "Alberta", "Laurowa", "Baseny Uniwersyteckie", "Politechnika", "Zajezdnia Mirów", "Studencka-Park Rozrywki", "Dyrektorska", "Wydział Prawa", "Mirów Królewski", "Pałacowa", "Woli", "Plac Henkla"] },
+  "12": { type: "tram", stops: ["Dworzec Centralny", "Plac Centralny", "Uniwersytet", "Trakt Królewski", "Rondo Unii Europejskiej", "Dworzec Wschodni", "Rondo Wielopolskiego", "Foksal", "Kliniczna", "Szpital Gurewicza", "Wiktoria-Ratusz", "Faworytowa", "Most Bobra", "Adama", "Zagadkowa", "Franklina", "Wilagrów", "Aleje Żwirki i Wigury", "Nowiniarska", "Lotniczej Straży Pożarnej", "Wilagrów Fabryczny"] },
+  "14": { type: "tram", stops: ["Cmentarz Międzyleski", "Habrowskiej", "Grunwaldzka", "Foksal", "Szkolna", "Plac Koteckich", "Most Kolasińskiego", "Księcia Janusza", "Warszawska", "Liniowa", "Matematyczna", "Galeria", "Plac Unii Bizceńskiej", "Serbska", "Aleja Goethego-Szpital", "Głazów", "Wilagrów", "Aleje Żwirki i Wigury", "Nowiniarska", "Lotniczej Straży Pożarnej", "Wilagrów Fabryczny"] },
+  "15": { type: "tram", stops: ["Zajezdnia Skuszowice", "Rondo WOŚP", "Lektorska", "Wydział Prawa", "Dyrektorska", "Studencka-Park Rozrywki", "Zajezdnia Mirów", "Politechnika", "Baseny Uniwersyteckie", "Laurowa", "Alberta", "Honorowskiego", "Foksal", "Szkolna", "Plac Koteckich", "Most Kolasińskiego", "Księcia Janusza", "Warszawska", "Liniowa", "Hotel Caistel", "Kolędnicza", "Zielona", "Wołoska-Muzeum", "SST", "Stadion Narodowy", "Kibiców", "Pułkowa", "Drawska"] },
+  "16": { type: "tram", stops: ["Plac Henkla", "Woli", "Pałacowa", "Mirów Królewski", "Wydział Prawa", "Lektorska", "Rondo WOŚP", "Zajezdnia Skuszowice", "Marywilska", "Skuszowice", "Rondo Waryńskiego", "Złotej Jesieni", "Izabeli", "Rondo Unii Europejskiej", "Trakt Królewski", "Uniwersytet", "Centrum", "Opera", "Kooperacyjna", "Księcia Janusza", "Plac Elżbiety", "Piłsudskiego", "Zajezdnia Śródmieście", "Adama", "Zagadkowa", "Franklina", "Wilagrów", "Głazów", "Aleja Goethego-Szpital", "Serbska", "Plac Unii Bizceńskiej", "Zajezdnia Monotony", "Inwestorska", "Dworzec Zachodni"] },
+  "17": { type: "tram", stops: ["Rondo Unii Europejskiej", "Trakt Królewski", "Uniwersytet", "Plac Centralny", "Bankowa", "Park Centralny", "Kooperacyjna", "Księcia Janusza", "Plac Elżbiety", "Piłsudskiego", "Plac Wielkopolski", "Park Aniołów", "Zagadkowa", "Adama", "Most Bobra", "Faworytowa", "Wiktoria-Ratusz", "Szpital Gurewicza", "Kliniczna", "Szkolna", "Plac Koteckich"] },
+  "18": { type: "tram", stops: ["Szpital Uniwersytecki", "Groszów", "Radosław", "Traugutta", "Belli Ćwir", "Tłumna", "Budziszewska", "Wydział Biologii", "Wydział Pedagogiki", "Rondo Unii Europejskiej", "Dworzec Wschodni", "Rondo Wielopolskiego", "Foksal", "Kliniczna", "Szpital Gurewicza", "Wiktoria-Ratusz", "Most Kolasińskiego", "Księcia Janusza", "Plac Elżbiety", "Piłsudskiego", "Plac Wielkopolski", "Matematyczna", "Hotel Caistel", "Kolędnicza", "Muzyczna", "Dworzec Centralny", "Wagonowa", "Bankowa", "Dworzec Centralny"] }
+};
+
+const COLORS = {
+  metro: "bg-purple-600",
+  train: "bg-emerald-800",
+  bus: "bg-blue-600",
+  tram: "bg-red-600"
+};
+
+// --- Helpers ---
+
+const getFutureTime = (minutesToAdd) => {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() + minutesToAdd);
+  return now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+};
+
+const getIntermediateStops = (lineId, startStop, endStop) => {
+  const allStops = NETWORK[lineId].stops;
+  const startIdx = allStops.indexOf(startStop);
+  const endIdx = allStops.indexOf(endStop);
+  
+  if (startIdx < endIdx) {
+    return allStops.slice(startIdx + 1, endIdx);
+  } else {
+    return allStops.slice(endIdx + 1, startIdx).reverse();
+  }
+};
+
+const getDirection = (lineId, startStop, endStop) => {
+  const allStops = NETWORK[lineId].stops;
+  return allStops.indexOf(startStop) < allStops.indexOf(endStop) 
+    ? allStops[allStops.length - 1] 
+    : allStops[0];
+};
+
+const findRoutesInNetwork = (start, end) => {
+  if (!start || !end) return [];
+  const results = [];
+
+  const linesAtStart = Object.entries(NETWORK).filter(([_, data]) => data.stops.includes(start));
+  const linesAtEnd = Object.entries(NETWORK).filter(([_, data]) => data.stops.includes(end));
+
+  // 1. Direct
+  linesAtStart.forEach(([lineId, lineData]) => {
+    if (lineData.stops.includes(end)) {
+      const idxStart = lineData.stops.indexOf(start);
+      const idxEnd = lineData.stops.indexOf(end);
+      const intermediate = getIntermediateStops(lineId, start, end);
+      // Prędkość: Tramwaj 4min/przystanek, Metro 3min, Kolej 2min
+      const speed = lineData.type === 'tram' ? 4 : (lineData.type === 'metro' ? 3 : 2);
+      const duration = Math.abs(idxEnd - idxStart) * speed;
+
+      results.push({
+        id: `direct-${lineId}`,
+        label: "Bezpośredni",
+        duration: `${duration} min`,
+        startTime: getFutureTime(2),
+        endTime: getFutureTime(duration + 2),
+        transfers: 0,
+        cost: lineData.type === 'train' ? "4.00 zł" : "3.40 zł",
+        segments: [{
+          type: lineData.type,
+          line: lineId,
+          from: start,
+          to: end,
+          direction: getDirection(lineId, start, end),
+          intermediate: intermediate,
+          duration: duration
+        }]
+      });
+    }
+  });
+
+  // 2. One transfer (simplified logic)
+  if (results.length < 3) {
+    linesAtStart.forEach(([l1Id, l1Data]) => {
+      linesAtEnd.forEach(([l2Id, l2Data]) => {
+        if (l1Id === l2Id) return;
+        const transferPoints = l1Data.stops.filter(stop => l2Data.stops.includes(stop));
+        
+        transferPoints.slice(0, 2).forEach(tp => {
+          const s1 = l1Data.type === 'tram' ? 4 : 2;
+          const s2 = l2Data.type === 'tram' ? 4 : 2;
+          const dur1 = Math.abs(l1Data.stops.indexOf(tp) - l1Data.stops.indexOf(start)) * s1;
+          const dur2 = Math.abs(l2Data.stops.indexOf(end) - l2Data.stops.indexOf(tp)) * s2;
+          const wait = 6;
+          const total = dur1 + wait + dur2;
+
+          results.push({
+            id: `trans-${l1Id}-${l2Id}-${tp}`,
+            label: `Przesiadka: ${tp}`,
+            duration: `${total} min`,
+            startTime: getFutureTime(2),
+            endTime: getFutureTime(total + 2),
+            transfers: 1,
+            cost: "4.40 zł",
+            segments: [
+              { type: l1Data.type, line: l1Id, from: start, to: tp, direction: getDirection(l1Id, start, tp), intermediate: getIntermediateStops(l1Id, start, tp), duration: dur1 },
+              { type: l2Data.type, line: l2Id, from: tp, to: end, direction: getDirection(l2Id, tp, end), intermediate: getIntermediateStops(l2Id, tp, end), duration: dur2 }
+            ]
+          });
+        });
+      });
+    });
+  }
+
+  return results.sort((a, b) => parseInt(a.duration) - parseInt(b.duration)).slice(0, 6);
+};
+
+// --- Components ---
+
+const RouteSegment = ({ segment, isLast }) => {
+  const [showStops, setShowStops] = useState(false);
+  const Icon = segment.type === 'metro' || segment.type === 'train' ? Train : (segment.type === 'tram' ? TramFront : Bus);
+
+  return (
+    <div className="flex group relative">
+      <div className="flex flex-col items-center mr-4">
+        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${COLORS[segment.type] || 'bg-gray-500'} z-10 shadow-sm font-black text-sm`}>
+          {segment.line}
+        </div>
+        {!isLast && <div className="w-1 bg-gray-200 h-full -my-1"></div>}
+      </div>
+      
+      <div className="pb-8 flex-grow">
+        <div className="flex justify-between items-start">
+          <div>
+            <h4 className="font-bold text-gray-900">{segment.from}</h4>
+            <div className="flex items-center gap-2 text-sm text-gray-500 mt-0.5">
+              <span>Kierunek: <span className="font-semibold text-gray-700">{segment.direction}</span></span>
+            </div>
+          </div>
+          <span className="text-sm font-medium text-emerald-600">{segment.duration} min</span>
+        </div>
+
+        {segment.intermediate.length > 0 && (
+          <div className="mt-2">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setShowStops(!showStops); }}
+              className="text-xs text-blue-600 flex items-center gap-1 hover:underline font-medium"
+            >
+              {segment.intermediate.length} przystanki pośrednie {showStops ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
+            </button>
+            
+            {showStops && (
+              <ul className="mt-2 pl-4 border-l-2 border-gray-100 space-y-2 animate-in fade-in slide-in-from-top-1">
+                {segment.intermediate.map((stop, i) => (
+                  <li key={i} className="text-xs text-gray-500 flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div> {stop}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+        
+        {isLast && (
+           <div className="mt-4 flex items-center gap-2">
+             <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+             <h4 className="font-bold text-gray-900">{segment.to}</h4>
+           </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default function StepApp() {
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [routes, setRoutes] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [selectedRouteId, setSelectedRouteId] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const [activeInput, setActiveInput] = useState(null); 
+  const [error, setError] = useState(null);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!from || !to) return;
+    setLoading(true);
+    setRoutes(null);
+    setError(null);
+    setTimeout(() => {
+      const results = findRoutesInNetwork(from, to);
+      results.length === 0 ? setError("Brak połączenia bezpośredniego lub z 1 przesiadką.") : setRoutes(results);
+      setLoading(false);
+    }, 600);
+  };
+
+  const handleInputChange = (val, type) => {
+    type === 'from' ? setFrom(val) : setTo(val);
+    if (val.length > 0) {
+      const uniqueStops = [...new Set(STOPS_DB)];
+      setSuggestions(uniqueStops.filter(s => s.toLowerCase().includes(val.toLowerCase())).slice(0, 10));
+      setActiveInput(type);
+    } else {
+      setSuggestions([]);
+      setActiveInput(null);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <div className="bg-emerald-600 h-48 w-full absolute top-0 z-0 rounded-b-[40px] shadow-inner"></div>
+
+      <main className="relative z-10 w-full max-w-xl mx-auto px-4 pt-8 pb-20">
+        <header className="flex items-center gap-3 text-white mb-8 px-2">
+          <Navigation size={32} fill="white" className="drop-shadow-md" />
+          <h1 className="text-3xl font-black tracking-tighter drop-shadow-sm">step</h1>
+        </header>
+
+        <div className="bg-white rounded-3xl shadow-2xl p-6 mb-8 border border-white/50 backdrop-blur-sm">
+          <form onSubmit={handleSearch} className="space-y-4">
+            <div className="relative">
+              <input
+                type="text"
+                value={from}
+                onChange={(e) => handleInputChange(e.target.value, 'from')}
+                placeholder="Skąd ruszasz?"
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-emerald-500 font-medium transition-all"
+              />
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600">
+                <div className="w-3.5 h-3.5 rounded-full border-2 border-current"></div>
+              </div>
+              {activeInput === 'from' && suggestions.length > 0 && (
+                <ul className="absolute z-50 left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl max-h-60 overflow-auto border border-gray-100 overflow-hidden">
+                  {suggestions.map((s, i) => (
+                    <li key={i} onClick={() => { setFrom(s); setActiveInput(null); }} className="px-5 py-4 hover:bg-emerald-50 cursor-pointer text-sm font-semibold border-b border-gray-50 last:border-0 transition-colors flex items-center gap-3">
+                      <MapPin size={14} className="text-gray-400" /> {s}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="relative">
+              <input
+                type="text"
+                value={to}
+                onChange={(e) => handleInputChange(e.target.value, 'to')}
+                placeholder="Dokąd chcesz jechać?"
+                className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-emerald-500 font-medium transition-all"
+              />
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500"><MapPin size={20}/></div>
+              {activeInput === 'to' && suggestions.length > 0 && (
+                <ul className="absolute z-50 left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl max-h-60 overflow-auto border border-gray-100 overflow-hidden">
+                  {suggestions.map((s, i) => (
+                    <li key={i} onClick={() => { setTo(s); setActiveInput(null); }} className="px-5 py-4 hover:bg-emerald-50 cursor-pointer text-sm font-semibold border-b border-gray-50 last:border-0 transition-colors flex items-center gap-3">
+                      <MapPin size={14} className="text-gray-400" /> {s}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <button type="submit" className="w-full bg-gray-900 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-black transition-all flex items-center justify-center gap-2 transform active:scale-[0.98]">
+              {loading ? <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <><Search size={20}/> SZUKAJ POŁĄCZENIA</>}
+            </button>
+          </form>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 p-4 rounded-2xl border border-red-100 text-red-600 flex items-center gap-3 animate-in fade-in zoom-in-95">
+            <AlertCircle size={20}/> <span className="font-semibold text-sm">{error}</span>
+          </div>
+        )}
+
+        {routes && (
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
+            <h2 className="font-black text-gray-900 text-xl px-2 flex items-center gap-2">
+              Wyniki wyszukiwania <span className="bg-gray-200 text-[10px] px-2 py-1 rounded-full">{routes.length}</span>
+            </h2>
+            {routes.map((route) => (
+              <div 
+                key={route.id}
+                onClick={() => setSelectedRouteId(selectedRouteId === route.id ? null : route.id)}
+                className={`bg-white rounded-[32px] p-6 border-2 transition-all cursor-pointer ${selectedRouteId === route.id ? 'border-emerald-500 shadow-xl scale-[1.02]' : 'border-white shadow-sm hover:border-gray-100'}`}
+              >
+                <div className="flex justify-between items-center mb-5">
+                  <div className="flex gap-2">
+                    {route.segments.map((s, i) => (
+                      <div key={i} className={`px-3 py-1.5 rounded-xl text-white text-xs font-black shadow-sm ${COLORS[s.type]}`}>{s.line}</div>
+                    ))}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-black text-gray-900 tracking-tight">{route.startTime}</div>
+                    <div className="text-[9px] text-gray-400 font-black uppercase tracking-widest">ODJAZD</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-3 text-gray-600 font-bold">
+                    <span className="flex items-center gap-1.5"><Clock size={16} className="text-emerald-600"/> {route.duration}</span>
+                    <span className="w-1.5 h-1.5 bg-gray-200 rounded-full"></span>
+                    <span className="text-xs uppercase">{route.transfers === 0 ? 'Bezpośredni' : route.label}</span>
+                  </div>
+                  <div className="font-black text-gray-900 text-base">{route.cost}</div>
+                </div>
+
+                {selectedRouteId === route.id && (
+                  <div className="mt-8 pt-8 border-t border-gray-100 animate-in fade-in slide-in-from-top-6">
+                    {route.segments.map((seg, i) => (
+                      <RouteSegment key={i} segment={seg} isLast={i === route.segments.length - 1} />
+                    ))}
+                    <button className="w-full bg-emerald-600 text-white font-black py-4 rounded-2xl mt-4 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200 active:scale-95">
+                      KUP BILET I RUSZAJ
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
